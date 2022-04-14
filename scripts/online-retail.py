@@ -36,7 +36,7 @@ df = df.withColumn("InvoiceDate", F.from_unixtime(F.unix_timestamp(F.col("Invoic
 
 # Tratamento Quantity
 
-f = df.withColumn('Quantity', F.when(F.col('Quantity').isNull(), 0).when(F.col('Quantity') < 0, 0).otherwise(F.col('Quantity')))
+df = df.withColumn('Quantity', F.when(F.col('Quantity').isNull(), 0).when(F.col('Quantity') < 0, 0).otherwise(F.col('Quantity')))
 
 # Adicionando a coluna 'TotalPrice' ao dataframe
 
