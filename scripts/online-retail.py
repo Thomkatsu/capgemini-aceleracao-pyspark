@@ -14,16 +14,14 @@ schema_online_retail = StructType([
 	StructField('Country', StringType(), True),
 ])
  
-if __name__ == "__main__":
-	sc = SparkContext()
-	spark = (SparkSession.builder.appName("Aceleração PySpark - Capgemini [Online Retail]"))
+sc = SparkContext()
+spark = (SparkSession.builder.appName("Aceleração PySpark - Capgemini [Online Retail]"))
 
-	df = (spark.getOrCreate().read
-		          .format("csv")
-		          .option("header", "true")
-		          .schema(schema_online_retail)
-		          .load("/home/spark/capgemini-aceleracao-pyspark/data/online-retail/online-retail.csv"))
-
+df = (spark.getOrCreate().read
+				.format("csv")
+				.option("header", "true")
+				.schema(schema_online_retail)
+				.load("data/online-retail/online-retail.csv"))
 
 # Tratamento UnitPrice
 
