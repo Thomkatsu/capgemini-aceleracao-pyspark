@@ -44,31 +44,26 @@ df = df.withColumn('TotalPrice', F.col('Quantity')*F.col('UnitPrice'))
 	
 	
 # Pergunta 1
-# 1. Qual o valor de Gift Cards vendidos no total? Considere StockCode="gift_0001"
 
 df_1 = df.filter(F.col('StockCode').startswith('gift_0001'))
 
 df_1.agg(F.sum('TotalPrice')).show()
 
 # Pergunta 2
-# 2. Qual o valor total de Gift Cards vendidos por mês? Considere StockCode="gift_0001"
 
 df_2 = df_1.groupBy(F.month(F.col('InvoiceDate'))).sum('TotalPrice').show()
 
 # Pergunta 3
-# 3. Qual o valor total de amostras que foram concedidas? Consider StockCode="S"
 
 df_3 = df.filter(F.col('StockCode')=='S')
 
 df_3.agg(F.sum('TotalPrice')).show()
 
 # Pergunta 4
-# 4. Qual o produto mais vendido?
 
 df_4 = (df.groupBy(F.col('Description')).agg(F.sum('Quantity').alias('Quantity')).orderBy(F.col('Quantity').desc()).show(1))
 
 # Pergunta 5
-# 5. Qual o produto mais vendido por mês?
 
 df_5 = (df.groupBy('Description', F.month('InvoiceDate').alias('Month'))
 		    .agg(F.sum('Quantity').alias('Quantity'))
@@ -77,7 +72,6 @@ df_5 = (df.groupBy('Description', F.month('InvoiceDate').alias('Month'))
 		    .show())
 
 # Pergunta 6
-# 6. Qual hora do dia tem maior valor de vendas?
 
 df_6 = (df.groupBy(F.hour('InvoiceDate'))
 	   .agg(F.round(F.sum(F.col('TotalPrice')), 2).alias('value'))
@@ -85,13 +79,59 @@ df_6 = (df.groupBy(F.hour('InvoiceDate'))
 	   .show(1))
 
 # Pergunta 7
-# 7. Qual mês do ano tem maior valor de vendas?
 
 df_7 = (df.groupBy(F.month('InvoiceDate'))
 	   .agg(F.round(F.sum('TotalPrice'), 2).alias('TotalPrice'))
 	   .orderBy(F.col('TotalPrice').desc())
 	   .show(1))
 
-# Pergunta 8
-# 8. Qual o produto mais vendido no mês do ano tem maior valor de vendas?
 
+def pergunta_8(df):
+	sales_per_month = (df.groupBy(F.month('InvoiceDate'), "StockCode")
+						 .agg({'Sale': 'sum'})
+						 .withColumnRenamed('sum(Sale)', 'Sale')
+						 .withColumnRenamed('month(InvoiceDate)', 'month'))
+
+	windowsSpec      = Window.partitionBy('month').orderBy(F.col('Sale').desc())
+	sales_per_month2 = sales_per_month.withColumn("row_number", F.row_number().over(windowsSpec))
+	return sales_per_month2.filter(sales_per_month2.row_number == 1).show()
+
+def pergunta_9(df):
+	return (df.groupBy("Country")
+	  	   .agg({'Sale':'count'})
+	  	   .withColumnRenamed('count(Sale)', 'Sale')
+	       .sort('Sale', ascending = False).show()
+	)
+
+def pergunta_10(df):
+	manual = df.filter((F.col('StockCode').startswith('M')) & (F.col('StockCode') != 'PADS') & (F.col('Quantity') < 0))
+	return (manual.groupBy("Country")
+	  	   .agg({'Sale':'count'})
+	  	   .withColumnRenamed('count(Sale)', 'Sale')
+	       .sort('Sale', ascending = False).show()
+	)
+
+def pergunta_11(df):
+	return (df.groupBy('InvoiceNo')
+			  .agg({'UnitPrice': 'max'})
+			  .withColumnRenamed('max(UnitPrice)', 'UnitPrice')
+			  .sort('UnitPrice', ascending = False)
+			  .show()
+	)
+
+def pergunta_12(df):
+	return (df.groupBy('InvoiceNo')
+			.agg({'UnitPrice': 'count'})
+			.withColumnRenamed('count(UnitPrice)', 'Count')
+			.sort('Count', ascending = False)
+			.show()
+	)
+
+def pergunta_13(df):
+	customerID_not_null = df.filter(F.col('CustomerID').isNotNull())
+	return (customerID_not_null.groupBy('CustomerID')
+							   .agg({'UnitPrice': 'count'})
+							   .withColumnRenamed('count(UnitPrice)', 'Count')
+							   .sort('Count', ascending = False)
+							   .show()
+	)
